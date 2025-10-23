@@ -1,11 +1,9 @@
 name: Build and Release
-
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
-
 jobs:
   build:
     name: Build AmneziaWG
@@ -29,15 +27,18 @@ jobs:
           sudo apt-get install -y build-essential crossbuild-essential-${{ matrix.arch }} \
             libmnl-dev:${{ matrix.arch }} pkg-config
           
+      - name: Clone amneziawg-go repository
+        run: |
+          git clone https://github.com/amnezia-vpn/amneziawg-go.git
+          
       - name: Build amneziawg-go for ${{ matrix.arch }}
         env:
           CGO_ENABLED: 1
           GOARCH: ${{ matrix.arch }}
           CC: ${{ matrix.arch == 'arm' && 'arm-linux-gnueabihf-gcc' || 'aarch64-linux-gnu-gcc' }}
         run: |
-          cd src/backend
-          make clean
-          make
+          cd amneziawg-go
+          go build -v -o ../src/backend/amneziawg-go
           
       - name: Package artifacts
         run: |
@@ -51,7 +52,6 @@ jobs:
           name: amneziawg-${{ matrix.arch }}
           path: src/backend/dist/*.tar.gz
           retention-days: 90
-
   release:
     name: Create Release
     needs: build
