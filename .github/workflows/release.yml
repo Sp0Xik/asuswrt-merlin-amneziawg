@@ -1,4 +1,36 @@
 name: Build and Release
+
+on:
+  push:
+    tags:
+      - '*'
+  workflow_dispatch:
+
+jobs:
+  build_arm:
+    name: Build AmneziaWG for ARM
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc-arm-linux-gnueabihf gcc-aarch64-linux-gnu libmnl-dev libnl-3-dev libnl-genl-3-dev
+          
+      - name: Clone amneziawg-go repository
+        run: |
+          git clone https://github.com/amnezia-vpn/amneziawg-go.git
+          
+      - name: Build amneziawg-go for ARM
+        env:
+          CGO_ENABLED: 0
           GOOS: linux
           GOARCH: arm
           GOARM: 7
@@ -48,7 +80,6 @@ name: Build and Release
         with:
           name: amneziawg-go-arm64
           path: amneziawg-go/amneziawg-go-arm64
-
   publish_release:
     name: Publish Release
     runs-on: ubuntu-latest
