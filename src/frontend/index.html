@@ -1,1 +1,212 @@
-<!-- Main HTML entry point -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AmneziaWG - Asuswrt-Merlin</title>
+  <style>
+    :root{
+      --bg:#0b1115;--panel:#111a21;--muted:#3a4a57;--text:#e6eef4;--accent:#2bb5ff;--accent-2:#7cf;--ok:#2ecc71;--warn:#f1c40f;--err:#e74c3c;
+      --input:#0e161c;--input-br:#1d2a33;--pill:#0a1a22;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,Segoe UI,Roboto,Arial,sans-serif}
+    a{color:var(--accent)}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+    header.app{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    header.app h1{font-size:18px;margin:0}
+    .tabs{display:flex;gap:6px;flex-wrap:wrap}
+    .tab-btn{appearance:none;border:1px solid var(--input-br);background:var(--panel);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer}
+    .tab-btn.active{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent),transparent 80%)}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .card{grid-column:span 12;background:var(--panel);border:1px solid var(--input-br);border-radius:12px;padding:14px}
+    @media(min-width:860px){.card.h6{grid-column:span 6}.card.h4{grid-column:span 4}}
+    .card h3{margin:0 0 10px 0;font-size:15px}
+    label{display:block;margin:8px 0 4px;color:#b7c6d1}
+    input[type=text], input[type=number], textarea, select{width:100%;padding:8px 10px;background:var(--input);color:var(--text);border:1px solid var(--input-br);border-radius:8px}
+    textarea{min-height:92px;resize:vertical}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{display:inline-flex;align-items:center;gap:6px;background:var(--pill);border:1px solid var(--input-br);padding:6px 8px;border-radius:999px}
+    .switch{position:relative;width:40px;height:22px}
+    .switch input{opacity:0;width:0;height:0}
+    .sl{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#22323e;border:1px solid var(--input-br);border-radius:999px;transition:.2s}
+    .sl:before{content:"";position:absolute;height:16px;width:16px;left:3px;top:2px;background:#7b8a96;border-radius:50%;transition:.2s}
+    .switch input:checked + .sl{background:#114458;border-color:#1b6276}
+    .switch input:checked + .sl:before{transform:translateX(18px);background:var(--accent)}
+    .actions{display:flex;gap:10px;justify-content:flex-end;margin:14px 0}
+    .btn{appearance:none;border:1px solid var(--input-br);background:var(--panel);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer}
+    .btn.primary{background:linear-gradient(180deg,#1a7fb0,#176e98);border-color:#1f6b8f}
+    .muted{color:#9cb1c0;font-size:12px}
+    .kv{display:grid;grid-template-columns:160px 1fr;gap:8px;align-items:center}
+    .tag{display:inline-block;padding:2px 6px;border:1px solid var(--input-br);border-radius:6px;background:var(--pill);font-size:12px}
+    .help{font-size:12px;color:#a7bac8}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .warn{color:var(--warn)}
+    .ok{color:var(--ok)}
+    .err{color:var(--err)}
+    .hidden{display:none}
+  </style>
+  <script>
+    const state={activeTab:'basic'};
+    function setTab(id){state.activeTab=id;for(const el of document.querySelectorAll('[data-tab]')) el.classList.toggle('hidden', el.dataset.tab!==id);for(const b of document.querySelectorAll('.tab-btn')) b.classList.toggle('active', b.dataset.to===id)}
+    function addRouteRow(){const t=document.querySelector('#routes tbody');const r=document.createElement('tr');r.innerHTML=`<td><select><option value="wan">WAN</option><option value="wg">AmneziaWG</option></select></td><td><input type="text" placeholder="CIDR/IP e.g. 10.0.0.0/24"/></td><td><input type="text" placeholder="Comma list or *"/></td><td><button class="btn" onclick="this.closest('tr').remove()">Remove</button></td>`;t.appendChild(r)}
+    function addMarkRow(){const t=document.querySelector('#marks tbody');const r=document.createElement('tr');r.innerHTML=`<td><input type="number" min="1" max="4294967295" placeholder="FwMark"/></td><td><input type="text" placeholder="Ports e.g. 1-1024,80,443"/></td><td><button class="btn" onclick="this.closest('tr').remove()">Remove</button></td>`;t.appendChild(r)}
+    function addPeer(){const c=document.getElementById('peers');const n=document.createElement('div');n.className='card';n.innerHTML=`<div class="row" style="justify-content:space-between"><h3>Peer</h3><button class="btn" onclick="this.closest('.card').remove()">Remove</button></div><div class="grid"><div class="card h6"><label>Peer Name</label><input type="text" placeholder="client-1"/></div><div class="card h6"><label>Allowed IPs</label><input type="text" placeholder="0.0.0.0/0"/></div><div class="card h6"><label>Public Key</label><input type="text" class="mono" placeholder="base64 key"/></div><div class="card h6"><label>Preshared Key</label><input type="text" class="mono" placeholder="optional"/></div><div class="card h6"><label>Endpoint</label><input type="text" placeholder="host:port"/></div><div class="card h6"><label>Persistent Keepalive</label><input type="number" min="0" placeholder="25"/></div></div>`;c.appendChild(n)}
+    window.addEventListener('DOMContentLoaded',()=>{setTab('basic')});
+  </script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="app">
+      <h1>AmneziaWG for Asuswrt-Merlin</h1>
+      <span class="tag">UI</span>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-to="basic" onclick="setTab('basic')" role="tab">Basic Settings</button>
+      <button class="tab-btn" data-to="obfs" onclick="setTab('obfs')" role="tab">AWG 2.0 Obfuscation</button>
+      <button class="tab-btn" data-to="policy" onclick="setTab('policy')" role="tab">Policy Routing</button>
+      <button class="tab-btn" data-to="advanced" onclick="setTab('advanced')" role="tab">Advanced</button>
+    </div>
+
+    <section data-tab="basic">
+      <div class="grid">
+        <div class="card h6">
+          <h3>Interface</h3>
+          <label>Enable AmneziaWG</label>
+          <div class="row"><label class="switch"><input type="checkbox" id="enable"/><span class="sl"></span></label><span class="muted">Toggle to bring interface up</span></div>
+          <label>Interface Name</label>
+          <input type="text" placeholder="awg0" value="awg0"/>
+          <label>Listen Port</label>
+          <input type="number" placeholder="51820" value="51820"/>
+          <label>MTU</label>
+          <input type="number" placeholder="1420"/>
+        </div>
+        <div class="card h6">
+          <h3>Keys</h3>
+          <label>Private Key</label>
+          <input type="text" class="mono" placeholder="base64 private key"/>
+          <label>Public Key (read-only)</label>
+          <input type="text" class="mono" placeholder="auto-derived" readonly>
+          <div class="row">
+            <button class="btn">Generate</button>
+            <button class="btn">Import</button>
+          </div>
+        </div>
+        <div class="card h6">
+          <h3>Addresses</h3>
+          <label>IPv4 Address</label>
+          <input type="text" placeholder="10.0.0.2/32"/>
+          <label>IPv6 Address</label>
+          <input type="text" placeholder="fd00::2/128"/>
+          <label>DNS Servers</label>
+          <input type="text" placeholder="1.1.1.1, 9.9.9.9"/>
+        </div>
+        <div class="card h6">
+          <h3>Peers</h3>
+          <div id="peers"></div>
+          <div class="actions"><button class="btn" onclick="addPeer()">Add Peer</button></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button">Reset</button>
+        <button class="btn primary" type="button">Save Basic</button>
+      </div>
+    </section>
+
+    <section data-tab="obfs" class="hidden">
+      <div class="grid">
+        <div class="card h6">
+          <h3>AWG 2.0 Obfuscation</h3>
+          <label>Enable Obfuscation</label>
+          <div class="row"><label class="switch"><input type="checkbox" id="obfs-en"/><span class="sl"></span></label><span class="muted">Adds obfuscation layer to AWG</span></div>
+          <label>Obfs Mode</label>
+          <select>
+            <option value="none">None</option>
+            <option value="simple">Simple (XOR)</option>
+            <option value="darkstar">DarkStar 2.0</option>
+          </select>
+          <label>Obfs Secret</label>
+          <input type="text" class="mono" placeholder="hex/base64 secret"/>
+          <label>Padding</label>
+          <input type="number" placeholder="0"/>
+        </div>
+        <div class="card h6">
+          <h3>Transport</h3>
+          <label>Protocol</label>
+          <select>
+            <option>UDP</option>
+            <option>TCP</option>
+            <option>QUIC</option>
+          </select>
+          <label>Endpoint Override</label>
+          <input type="text" placeholder="host:port (optional)"/>
+          <label>Handshake Timeout (s)</label>
+          <input type="number" placeholder="5"/>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button">Reset</button>
+        <button class="btn primary" type="button">Save Obfuscation</button>
+      </div>
+    </section>
+
+    <section data-tab="policy" class="hidden">
+      <div class="grid">
+        <div class="card h6">
+          <h3>Policy Routing (amneziawg-routing-ui.md)</h3>
+          <p class="help">Define what goes via WAN or via AmneziaWG by destination, source or marks.</p>
+          <h4>Route Rules</h4>
+          <table id="routes" class="mono" style="width:100%;border-collapse:collapse">
+            <thead><tr><th style="text-align:left">Table</th><th style="text-align:left">Destination</th><th style="text-align:left">Sources (IPs/MACs)</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="actions"><button class="btn" type="button" onclick="addRouteRow()">Add Route</button></div>
+        </div>
+        <div class="card h6">
+          <h3>Marks to Tables</h3>
+          <table id="marks" class="mono" style="width:100%;border-collapse:collapse">
+            <thead><tr><th style="text-align:left">FwMark</th><th style="text-align:left">Ports/Proto</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="actions"><button class="btn" type="button" onclick="addMarkRow()">Add Mark</button></div>
+          <p class="help">Use iptables mark to select routing table; leave empty to disable.</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button">Reset</button>
+        <button class="btn primary" type="button">Save Policy</button>
+      </div>
+    </section>
+
+    <section data-tab="advanced" class="hidden">
+      <div class="grid">
+        <div class="card h6">
+          <h3>Advanced</h3>
+          <label>Pre-Up Script</label>
+          <textarea placeholder="sh commands before interface up"></textarea>
+          <label>Post-Up Script</label>
+          <textarea placeholder="sh commands after interface up"></textarea>
+          <label>Pre-Down Script</label>
+          <textarea placeholder="before down"></textarea>
+          <label>Post-Down Script</label>
+          <textarea placeholder="after down"></textarea>
+        </div>
+        <div class="card h6">
+          <h3>Debug</h3>
+          <div class="kv"><div>Status</div><div><span class="tag ok">Ready</span></div></div>
+          <div class="kv"><div>Interface</div><div><span class="mono">awg0</span></div></div>
+          <div class="kv"><div>Runtime</div><div><code class="mono">/jffs/awg</code></div></div>
+          <label>Extra Config (raw)</label>
+          <textarea class="mono" placeholder="key=value"></textarea>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button">Reset</button>
+        <button class="btn primary" type="button">Save Advanced</button>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
