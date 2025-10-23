@@ -1,17 +1,15 @@
 name: Build and Release
+
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
+
 jobs:
-  build:
-    name: Build AmneziaWG
+  build_arm:
+    name: Build AmneziaWG for ARM
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        arch: [arm, arm64]
-        
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -23,56 +21,63 @@ jobs:
           
       - name: Install dependencies
         run: |
-          sudo apt-get install -y build-essential
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc-arm-linux-gnueabihf
           
       - name: Clone amneziawg-go repository
         run: |
           git clone https://github.com/amnezia-vpn/amneziawg-go.git
           
-      - name: Build amneziawg-go for ${{ matrix.arch }}
+      - name: Build amneziawg-go for ARM
         env:
           CGO_ENABLED: 1
-          GOARCH: ${{ matrix.arch }}
-          CC: ${{ matrix.arch == 'arm' && 'arm-linux-gnueabihf-gcc' || 'aarch64-linux-gnu-gcc' }}
+          GOOS: linux
+          GOARCH: arm
+          GOARM: 7
+          CC: arm-linux-gnueabihf-gcc
         run: |
           cd amneziawg-go
-          go build -v -o ../src/backend/amneziawg-go
+          go build -v -o amneziawg-go-arm
           
-      - name: Package artifacts
-        run: |
-          cd src/backend
-          mkdir -p dist
-          tar -czf dist/amneziawg-${{ matrix.arch }}.tar.gz -C . amneziawg-go
-          
-      - name: Upload artifacts
+      - name: Upload ARM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: amneziawg-${{ matrix.arch }}
-          path: src/backend/dist/*.tar.gz
-          retention-days: 90
-  release:
-    name: Create Release
-    needs: build
+          name: amneziawg-go-arm
+          path: amneziawg-go/amneziawg-go-arm
+
+  build_arm64:
+    name: Build AmneziaWG for ARM64
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
-          path: artifacts
+          go-version: '1.21'
           
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            artifacts/amneziawg-arm/*.tar.gz
-            artifacts/amneziawg-arm64/*.tar.gz
-          draft: false
-          prerelease: false
-          generate_release_notes: true
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc-aarch64-linux-gnu
+          
+      - name: Clone amneziawg-go repository
+        run: |
+          git clone https://github.com/amnezia-vpn/amneziawg-go.git
+          
+      - name: Build amneziawg-go for ARM64
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CGO_ENABLED: 1
+          GOOS: linux
+          GOARCH: arm64
+          CC: aarch64-linux-gnu-gcc
+        run: |
+          cd amneziawg-go
+          go build -v -o amneziawg-go-arm64
+          
+      - name: Upload ARM64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amneziawg-go-arm64
+          path: amneziawg-go/amneziawg-go-arm64
