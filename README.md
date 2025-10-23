@@ -1,6 +1,9 @@
 # AmneziaWG для AsusWRT-Merlin
 
-[![License](https://img.shields.io/badge/license-GPL--2.0-blue.svg[![Release](https://img.shields.io/github/v/release/YOUR_USERNAME/asuswrt(https://github.com/YOUR_USERNAME/asuswrt-merlin-amneziawg/releasesный веб-интерфейс для управления AmneziaWG VPN на роутерах с прошивкой AsusWRT-Merlin. Полная поддержка **AmneziaWG 2.0** с расширенной обфускацией для обхода Deep Packet Inspection (DPI).
+[![License](https://img.shields.io/badge/license-GPL--2.0-blue.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/Sp0Xik/asuswrt-merlin-amneziawg)](https://github.com/Sp0Xik/asuswrt-merlin-amneziawg/releases)
+
+Удобный веб-интерфейс для управления AmneziaWG VPN на роутерах с прошивкой AsusWRT-Merlin. Полная поддержка **AmneziaWG 2.0** с расширенной обфускацией для обхода Deep Packet Inspection (DPI).
 
 ## 🌟 Возможности
 
@@ -50,7 +53,7 @@
 ### Быстрая установка (одна команда):
 
 ```bash
-wget -O /tmp/install.sh https://raw.githubusercontent.com/YOUR_USERNAME/asuswrt-merlin-amneziawg/main/install.sh && sh /tmp/install.sh
+wget -O /tmp/install.sh https://raw.githubusercontent.com/Sp0Xik/asuswrt-merlin-amneziawg/main/install.sh && sh /tmp/install.sh
 ```
 
 ### Ручная установка:
@@ -59,7 +62,7 @@ wget -O /tmp/install.sh https://raw.githubusercontent.com/YOUR_USERNAME/asuswrt-
 
 2. **Скачайте последний релиз:**
 ```bash
-wget -O /tmp/amneziawg.tar.gz https://github.com/YOUR_USERNAME/asuswrt-merlin-amneziawg/releases/latest/download/asuswrt-merlin-amneziawg.tar.gz
+wget -O /tmp/amneziawg.tar.gz https://github.com/Sp0Xik/asuswrt-merlin-amneziawg/releases/latest/download/asuswrt-merlin-amneziawg.tar.gz
 ```
 
 3. **Распакуйте в /jffs/addons:**
@@ -79,12 +82,3 @@ mv /jffs/addons/amneziawg/amneziawg /jffs/scripts/amneziawg
 ```
 
 6. **Готово!** Перезайдите в веб-интерфейс роутера и найдите **VPN → AmneziaWG**
-
-...(продолжите дальнейшую вставку README как в примере в файле README-amneziawg.md или файле  в этом диалоге)
-
-***
-
-Как только сохраните — сообщите мне, и я продолжу рекомендованный следующий этап (например, настройку GitHub Actions, добавление install.sh или иных скриптов/модулей).
-
-[1](https://github.com/Sp0Xik/asuswrt-merlin-amneziawg/edit/main/README.md)
-[2](https://github.com/Sp0Xik/asuswrt-merlin-amneziawg/edit/main/README.md)
